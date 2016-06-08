@@ -24,16 +24,58 @@ function getControlPoints(x0,y0,x1,y1,x2,y2,t){
     return [p1x,p1y,p2x,p2y];
 }
 
+
+
 function dist2(x1, y1, x2, y2) {
     return Math.pow(x2-x1, 2) + Math.pow(y2-y1, 2);
 }
-
 function min(a, b) {
     return a < b ? a : b;
 }
 function max(a, b) {
     return a > b ? a : b;
 }
+
+function angle(ax, ay, bx, by) {
+    var cos = (ax*bx + ay*by) / Math.sqrt(ax*ax + ay*ay) / Math.sqrt(bx*bx + by*by);
+    if (isNaN(cos)) cos = 0;
+    cos = Math.max(-1, Math.min(cos, 1));
+    return Math.acos(cos);
+}
+
+function isInsideLineSegment(p1x, p1y, p2x, p2y, x, y) {
+    var lx = p2x - p1x, ly = p2y - p1y;
+    var ax = p1x - x, ay = p1y - y;
+    var bx = p2x - x, by = p2y - y;
+    var ang1 = angle(lx, ly, ax, ay);
+    var ang2 = angle(lx, ly, bx, by);
+    var pi2 = Math.PI/2;
+    // oba tupa/siljasta -> izvan; jedan/jedan -> unutar
+    return !!((ang1 - pi2) * (ang2 - pi2) < 0);
+}
+
+function closestLineSegment(knots, x, y) {
+    var n = knots.length;
+    var minDist = 1e10, minLeft = -1, minRight = -1;
+    for (var idxLeft = 0; idxLeft < n; idxLeft++) {
+        var idxRight = (idxLeft + 1) % n;
+        var p1 = knots[idxLeft], p2 = knots[idxRight];
+        var p1x = p1.attr("cx"), p1y = p1.attr("cy");
+        var p2x = p2.attr("cx"), p2y = p2.attr("cy");
+        if (!isInsideLineSegment(p1x, p1y, p2x, p2y, x, y)) {
+            continue;
+        }
+        var d = Math.pow((p2y - p1y) * x - (p2x - p1x) * y + p2x * p1y - p2y * p1x, 2)
+              / (Math.pow(p2y - p1y, 2) + Math.pow(p2x - p1x, 2));
+        if (d < minDist) {
+            minDist = d;
+            minLeft = idxLeft;
+            minRight = idxRight;
+        }
+    }
+    return [minLeft, minRight];
+}
+
 
 
 $(function() {
@@ -95,31 +137,6 @@ $(function() {
         curve.attr({path: path.join(" ")}).toBack();
     }
 
-    function closestKnot(x, y) {
-        var minDist = 1e10, minIdx = -1;
-        for (var i = 0; i < knots.length; i++) {
-            var xi = knots[i].attr("cx"), yi = knots[i].attr("cy"), d = dist2(x, y, xi, yi);
-            if (d < minDist) {
-                minDist = d;
-                minIdx = i;
-            }
-        }
-        if (minIdx < 0) return;
-        return minIdx;
-    }
-
-    function nextClosestKnot(idx, x, y) {
-        var n = knots.length;
-        var next = (idx + 1) % n;
-        var prev = (idx - 1 + n) % n;
-        if (dist2(x, y, knots[prev].attr("cx"), knots[prev].attr("cy")) < 
-            dist2(x, y, knots[next].attr("cx"), knots[next].attr("cy"))) {
-            return prev;
-        } else {
-            return next;
-        }
-    }
-
     // create and insert into knots at pos idx
     function createKnot(x, y, idx) {
         var knot = canvas.circle(x, y, pointRadius).attr(pointAttr);
@@ -154,8 +171,8 @@ $(function() {
 
     $("path", $box).on("dblclick", function(e) {
         var coords = toClientCoords(e.pageX, e.pageY);
-        var i = closestKnot(coords.cx, coords.cy);
-        var j = nextClosestKnot(i, coords.cx, coords.cy);
+        var knotIndices = closestLineSegment(knots, coords.cx, coords.cy);
+        var i = knotIndices[0], j = knotIndices[1];
         var wraps = (max(i,j) + 1) % knots.length == min(i,j);
         createKnot(coords.cx, coords.cy, !wraps && max(i, j));
         redrawPath();
