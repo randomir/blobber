@@ -1,3 +1,10 @@
+/**
+ * Funky spline-based svg blob lib/editor.
+ *
+ * Written by Radomir Stevanovic for fun and profit in June 2016.
+ * Source: https://github.com/randomir/blobber/.
+ */
+
 function dist2(x1, y1, x2, y2) {
     return Math.pow(x2-x1, 2) + Math.pow(y2-y1, 2);
 }
