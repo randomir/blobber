@@ -13,13 +13,21 @@
 	border: 1px dotted #666;
 }
 
-svg circle.fixed-point {
+svg g.blob {
+
+}
+
+svg path.blob-path {
+
+}
+
+svg circle.blob-knot {
     stroke-width: 24;
 	stroke-opacity: 0;
 	fill: #000;
 }
 
-svg:hover circle.fixed-point {
+svg:hover circle.blob-knot {
 	stroke-opacity: 0.15;
 	fill: #666;
 }

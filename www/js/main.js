@@ -33,31 +33,40 @@ var Blob = function(paper) {
     this.paper = paper;
     this.$ = {
         svg: $(paper.canvas),
-        box: $(paper.canvas).parent()
+        box: $(paper.canvas).parent(),
+        g: null
     };
+    this.g = null;
     this.knots = [];
     this.path = null;
 }
 $.extend(Blob.prototype, {
     def: {
-        knotAttr: {"class": "fixed-point"},
+        knotAttr: {"class": "blob-knot"},
         knotRadius: 2,
-        pathAttr: {fill: "rgba(255,0,0,0.8)", stroke: "#000", "stroke-width": 4},
+        pathAttr: {"class": "blob-path", fill: "rgba(255,0,0,0.8)", stroke: "#000", "stroke-width": 4},
         tension: 0.6
     },
     
     create: function(initialPoints, initialTension) {
         this.tension = initialTension || this.def.tension;
+
+        // create <g> container for knots and curve
+        this.g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        this.$.g = $(this.g);
+        this.$.g.addClass("blob");
+        this.$.svg.append(this.$.g);
         
         // create knots
         for (var i = 0; i < initialPoints.length; i++) {
             var point = initialPoints[i];
             this.createKnot(point[0], point[1]);
         }
+        
         // create curved path, draw it
         this.path = this.paper.path("M 0 0").attr(this.def.pathAttr);
+        $(this.path.node).detach().appendTo(this.$.g);
         this.redrawPath();
-        
         this.bind();
     },
     
@@ -109,8 +118,8 @@ $.extend(Blob.prototype, {
     
     // create and insert into knots at pos idx
     createKnot: function(x, y, idx) {
-        var knot = this.paper.circle(x, y, this.def.knotRadius)
-                       .attr(this.def.knotAttr);
+        var knot = this.paper.circle(x, y, this.def.knotRadius).attr(this.def.knotAttr);
+        $(knot.node).detach().appendTo(this.$.g);
         this.bindKnotEvents(knot);
         if (idx) {
             this.knots.splice(idx, 0, knot);
@@ -204,7 +213,7 @@ $(function() {
     var blob = new Blob(paper);
     blob.create(initialPoints);
     
-    var blob = new Blob(paper);
+    blob = new Blob(paper);
     blob.create([[800, 600], [600, 800], [400, 600]]);
     
 });
