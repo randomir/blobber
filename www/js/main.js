@@ -204,4 +204,7 @@ $(function() {
     var blob = new Blob(paper);
     blob.create(initialPoints);
     
+    var blob = new Blob(paper);
+    blob.create([[800, 600], [600, 800], [400, 600]]);
+    
 });
