@@ -240,14 +240,12 @@ $.extend(Blob.prototype, {
 });
 
 $(function() {
-    var $box = $("#blob");
-    var paper = Raphael($box[0], 800, 800);
+    var paper = Raphael("blobs", 800, 800);
     var initialPoints = [[400, 200], [600, 400], [400, 600], [200, 400]];
     
     var blob = new Blob(paper);
-    blob.create(initialPoints);
+    blob.create(initialPoints, 1);
     
     blob = new Blob(paper);
-    blob.create([[800, 600], [600, 800], [400, 600]]);
-    
+    blob.create([[700, 600], [600, 700], [400, 400]]);
 });

@@ -1,12 +1,4 @@
-#svg {
-    width: 800px;
-    height: 600px;
-    position: relative;
-    overflow: hidden;
-    border: 1px dotted #666;
-}
-
-#blob {
+#blobs {
     position: relative;
 	margin: 30px;
 	display: inline-block;
