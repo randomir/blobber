@@ -11,3 +11,13 @@
 	display: inline-block;
 	border: 1px dotted #666;
 }
+
+svg circle {
+	stroke-opacity: 0;
+	fill: #000;
+}
+
+svg:hover circle {
+	stroke-opacity: 0.15;
+	fill: #666;
+}

@@ -38,9 +38,9 @@ function max(a, b) {
 
 $(function() {
     var canvas = Raphael("blob", 800, 800);
-    var initialPoints = [[400, 200], [600, 400], [400, 600], [200, 400]], pointRadius = 5,
-        pointAttr = {fill: "#f00", stroke: "#000", "stroke-width": 3},
-        curveAttr = {fill: "#f00", stroke: "#000", "stroke-width": 3},
+    var initialPoints = [[400, 200], [600, 400], [400, 600], [200, 400]], pointRadius = 2,
+        pointAttr = {fill: "#666", stroke: "rgba(0,0,0,0.12)", "stroke-width": 24},
+        curveAttr = {fill: "rgba(255,0,0,0.8)", stroke: "#000", "stroke-width": 4},
         knots = [];
     var curve;
     var tension = 1;
