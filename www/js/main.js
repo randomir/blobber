@@ -76,4 +76,12 @@ $(function() {
 
     redrawPath();
 
+    $("#blob").on("mousewheel", function(e) {
+        if (e.deltaY < 0) {
+            tension -= 0.1;
+        } else {
+            tension += 0.1;
+        }
+        redrawPath();
+    });
 });
