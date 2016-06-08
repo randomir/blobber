@@ -18,7 +18,7 @@ g.blob {}
 
 	path.blob-path {}
 
-		g.blob:hover path.blob-path {
+		g.blob.active path.blob-path {
 			stroke: #000;
 			stroke-width: 4;
 			stroke-opacity: 0.8;
@@ -27,7 +27,7 @@ g.blob {}
 
 	circle.blob-knot {}
 
-		g.blob:hover circle.blob-knot {
+		g.blob.active circle.blob-knot {
 			stroke: #000;
 		    stroke-width: 24;
 			stroke-opacity: 0.2;

@@ -40,13 +40,19 @@ var Blob = function(paper) {
         g: null,
         path: null,
     };
+    this.isActive = false;
+    this.isResizing = false;
+    this.isMoving = false;
 }
 $.extend(Blob.prototype, {
     def: {
         knotAttr: {"class": "blob-knot", stroke: "none"},
         knotRadius: 2,
         pathAttr: {"class": "blob-path", stroke: "none", fill: "rgba(255,0,0,0.8)"},
-        tension: 0.6
+        tension: 0.6,
+        resizingClass: "resizing",
+        activeClass: "active",
+        movingClass: "moving"
     },
     
     create: function(initialPoints, initialTension) {
@@ -93,7 +99,14 @@ $.extend(Blob.prototype, {
         }.bind(this));
 
         this.$.g.on("mouseenter", function(e) {
+            if (e.which > 0) return;
             this.$.svg.append(this.$.g);
+            this.$.g.toggleClass(this.def.activeClass, this.isActive = true);
+        }.bind(this));
+        
+        this.$.g.on("mouseleave", function(e) {
+            if (this.isResizing) return;
+            this.$.g.toggleClass(this.def.activeClass, this.isActive = false);
         }.bind(this));
     },
     
@@ -104,8 +117,15 @@ $.extend(Blob.prototype, {
         
         // raphael event handler triggered for knot move;
         knot.drag(function(dx, dy, x, y) {
+            // onmove:
             this.attr(me.toClientCoords(x, y));
             me.redrawPath();
+        }, function() {
+            // onstart
+            me.$.g.toggleClass(me.def.resizingClass, me.isResizing = true);
+        }, function() {
+            // onend
+            me.$.g.toggleClass(me.def.resizingClass, me.isResizing = false);
         });
         
         // raphael event handler triggered for knot removal
