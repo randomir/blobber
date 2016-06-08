@@ -74,9 +74,7 @@ $.extend(Blob.prototype, {
     
     // bind DOM event handlers
     bind: function() {
-        var me = this;
-
-        this.$.box.on("mousewheel", function(e) {
+        this.$.g.on("mousewheel", function(e) {
             if (e.deltaY < 0) {
                 this.tension -= 0.05;
             } else {
@@ -95,8 +93,8 @@ $.extend(Blob.prototype, {
         }.bind(this));
 
         this.$.g.on("mouseenter", function(e) {
-            me.$.svg.append($(this));
-        });
+            this.$.svg.append(this.$.g);
+        }.bind(this));
     },
     
     bindKnotEvents: function(knot) {
