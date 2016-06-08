@@ -99,6 +99,7 @@ $(function() {
         redrawPath();
     }
     function knotRemove(dx, dy, x, y) {
+        if (knots.length <= 3) return;
         for (var i = 0; i < knots.length; i++) {
             if (knots[i] == this) {
                 this.remove();
