@@ -44,7 +44,7 @@ $(function() {
         curveAttr = {fill: "rgba(255,0,0,0.8)", stroke: "#000", "stroke-width": 4},
         knots = [];
     var curve;
-    var tension = 1;
+    var tension = 0.6;
     
     function toClientCoords(x, y) {
         var offset = $box.offset();
@@ -145,9 +145,9 @@ $(function() {
 
     $box.on("mousewheel", function(e) {
         if (e.deltaY < 0) {
-            tension -= 0.1;
+            tension -= 0.05;
         } else {
-            tension += 0.1;
+            tension += 0.05;
         }
         redrawPath();
     });
