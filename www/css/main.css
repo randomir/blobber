@@ -13,12 +13,13 @@
 	border: 1px dotted #666;
 }
 
-svg circle {
+svg circle.fixed-point {
+    stroke-width: 24;
 	stroke-opacity: 0;
 	fill: #000;
 }
 
-svg:hover circle {
+svg:hover circle.fixed-point {
 	stroke-opacity: 0.15;
 	fill: #666;
 }
