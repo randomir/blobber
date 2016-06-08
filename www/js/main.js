@@ -1,31 +1,3 @@
-// natural bezier spline interp between series of points
-// http://scaledinnovation.com/analytics/splines/aboutSplines.html
-function getControlPoints(x0,y0,x1,y1,x2,y2,t){
-    //  x0,y0,x1,y1 are the coordinates of the end (knot) pts of this segment
-    //  x2,y2 is the next knot -- not connected here but needed to calculate p2
-    //  p1 is the control point calculated here, from x1 back toward x0.
-    //  p2 is the next control point, calculated here and returned to become the 
-    //  next segment's p1.
-    //  t is the 'tension' which controls how far the control points spread.
-    
-    //  Scaling factors: distances from this knot to the previous and following knots.
-    var d01=Math.sqrt(Math.pow(x1-x0,2)+Math.pow(y1-y0,2));
-    var d12=Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1,2));
-   
-    var fa=t*d01/(d01+d12);
-    var fb=t-fa;
-  
-    var p1x=x1+fa*(x0-x2);
-    var p1y=y1+fa*(y0-y2);
-
-    var p2x=x1-fb*(x0-x2);
-    var p2y=y1-fb*(y0-y2);  
-    
-    return [p1x,p1y,p2x,p2y];
-}
-
-
-
 function dist2(x1, y1, x2, y2) {
     return Math.pow(x2-x1, 2) + Math.pow(y2-y1, 2);
 }
@@ -77,105 +49,158 @@ function closestLineSegment(knots, x, y) {
 }
 
 
-
-$(function() {
-    var $box = $("#blob");
-    var canvas = Raphael($box[0], 800, 800);
-    var initialPoints = [[400, 200], [600, 400], [400, 600], [200, 400]],
-        pointAttr = {"class": "fixed-point"}, pointRadius = 2,
-        curveAttr = {fill: "rgba(255,0,0,0.8)", stroke: "#000", "stroke-width": 4},
-        knots = [];
-    var curve;
-    var tension = 0.6;
+// Blob is bound to paper, everything blob is grouped with <g>
+var Blob = function(paper) {
+    this.paper = paper;
+    this.$ = {
+        svg: $(paper.canvas),
+        box: $(paper.canvas).parent()
+    };
+    this.knots = [];
+    this.path = null;
+}
+$.extend(Blob.prototype, {
+    def: {
+        knotAttr: {"class": "fixed-point"},
+        knotRadius: 2,
+        pathAttr: {fill: "rgba(255,0,0,0.8)", stroke: "#000", "stroke-width": 4},
+        tension: 0.6
+    },
     
-    function toClientCoords(x, y) {
-        var offset = $box.offset();
-        return {cx: x - offset.left, cy: y - offset.top};
-    }
-
-    // handle knot move
-    function knotMove(dx, dy, x, y) {
-        this.attr(toClientCoords(x, y));
-        redrawPath();
-    }
-    function knotRemove(dx, dy, x, y) {
-        if (knots.length <= 3) return;
-        for (var i = 0; i < knots.length; i++) {
-            if (knots[i] == this) {
-                this.remove();
-                knots.splice(i, 1);
-                break;
-            }
+    create: function(initialPoints, initialTension) {
+        this.tension = initialTension || this.def.tension;
+        
+        // create knots
+        for (var i = 0; i < initialPoints.length; i++) {
+            var point = initialPoints[i];
+            this.createKnot(point[0], point[1]);
         }
-        redrawPath();
-    }
-
-    // render curve between knots
-    var pts = [];
-    function redrawPath() {
-        if (knots.length < 3) return;
+        // create curved path, draw it
+        this.path = this.paper.path("M 0 0").attr(this.def.pathAttr);
+        this.redrawPath();
+        
+        this.bind();
+    },
+    
+    // bind DOM event handlers
+    bind: function() {
+        this.$.box.on("mousewheel", function(e) {
+            if (e.deltaY < 0) {
+                this.tension -= 0.05;
+            } else {
+                this.tension += 0.05;
+            }
+            this.redrawPath();
+        }.bind(this));
+        
+        $("path", this.$.box).on("dblclick", function(e) {
+            var coords = this.toClientCoords(e.pageX, e.pageY);
+            var knotIndices = closestLineSegment(this.knots, coords.cx, coords.cy);
+            var i = knotIndices[0], j = knotIndices[1];
+            var wraps = (max(i,j) + 1) % this.knots.length == min(i,j);
+            this.createKnot(coords.cx, coords.cy, !wraps && max(i, j));
+            this.redrawPath();
+        }.bind(this));
+    },
+    
+    bindKnotEvents: function(knot) {
+        // in raphael event handlers we must let raphael bind `this`,
+        // otherwise we lose reference to raphael target
+        var me = this;
+        
+        // raphael event handler triggered for knot move;
+        knot.drag(function(dx, dy, x, y) {
+            this.attr(me.toClientCoords(x, y));
+            me.redrawPath();
+        });
+        
+        // raphael event handler triggered for knot removal
+        knot.dblclick(function(dx, dy, x, y) {
+            if (me.knots.length <= 3) return;
+            for (var i = 0; i < me.knots.length; i++) {
+                if (me.knots[i] == this) {
+                    this.remove();
+                    me.knots.splice(i, 1);
+                    break;
+                }
+            }
+            me.redrawPath();
+        });
+    },
+    
+    // create and insert into knots at pos idx
+    createKnot: function(x, y, idx) {
+        var knot = this.paper.circle(x, y, this.def.knotRadius)
+                       .attr(this.def.knotAttr);
+        this.bindKnotEvents(knot);
+        if (idx) {
+            this.knots.splice(idx, 0, knot);
+        } else {
+            this.knots.push(knot);
+        }
+        return knot;
+    },
+    
+    // render curved path between the knots
+    redrawPath: function() {
+        if (this.knots.length < 3) return;
+        
         // close the path by adding first/last knot to end/beginning
-        var kts = knots.slice();
+        var kts = this.knots.slice();
         kts.push(kts[0]);
         kts.unshift(kts[kts.length-2]);
 
-        pts = [];
+        var pts = [];
         for (var i = 0; i < kts.length; i++) {
             pts.push(kts[i].attr("cx"), kts[i].attr("cy"));
         }
 
         var cps = [];
         for (var i = 0; i <= pts.length-6; i += 2) {
-            cps = cps.concat(getControlPoints(pts[i], pts[i+1], pts[i+2], pts[i+3], pts[i+4], pts[i+5], tension));
+            var cp = this.getControlPoints(
+                pts[i], pts[i+1], pts[i+2], pts[i+3],
+                pts[i+4], pts[i+5], this.tension
+            );
+            cps = cps.concat(cp);
         }
         cps.push(cps[0], cps[1]);
 
-        var path = ["M", pts[2], pts[3]];
+        var pathCode = ["M", pts[2], pts[3]];
         for (var i = 2; i <= pts.length-4; i += 2) {
-            path.push("C", cps[2*i-2], cps[2*i-1], cps[2*i], cps[2*i+1], pts[i+2], pts[i+3]);
+            pathCode.push("C", cps[2*i-2], cps[2*i-1], cps[2*i], cps[2*i+1], pts[i+2], pts[i+3]);
         }
-        path.push("Z");
-        curve.attr({path: path.join(" ")}).toBack();
+        pathCode.push("Z");
+        
+        this.path.attr({path: pathCode.join(" ")}).toBack();
+    },
+    
+    toClientCoords: function(x, y) {
+        var offset = this.$.box.offset();
+        return {cx: x - offset.left, cy: y - offset.top};
+    },
+    
+    // natural bezier spline interp between series of points
+    // see: http://scaledinnovation.com/analytics/splines/aboutSplines.html
+    getControlPoints: function(x0, y0, x1, y1, x2, y2, t) {
+        var d01 = Math.sqrt(Math.pow(x1-x0,2) + Math.pow(y1-y0,2));
+        var d12 = Math.sqrt(Math.pow(x2-x1,2) + Math.pow(y2-y1,2));
+        var fa = t*d01/(d01+d12);
+        var fb = t-fa;
+        var p1x = x1+fa*(x0-x2);
+        var p1y = y1+fa*(y0-y2);
+        var p2x = x1-fb*(x0-x2);
+        var p2y = y1-fb*(y0-y2);  
+        return [p1x, p1y, p2x, p2y];
     }
 
-    // create and insert into knots at pos idx
-    function createKnot(x, y, idx) {
-        var knot = canvas.circle(x, y, pointRadius).attr(pointAttr);
-        knot.drag(knotMove);
-        knot.dblclick(knotRemove);
-        if (idx) {
-            knots.splice(idx, 0, knot);
-        } else {
-            knots.push(knot);
-        }
-        return knot;
-    }
+});
 
-    // create knots, draw them on canvas
-    for (var i = 0; i < initialPoints.length; i++) {
-        var point = initialPoints[i];
-        createKnot(point[0], point[1]);
-    }
-
-    curve = canvas.path("M 0 0").attr(curveAttr);
-
-    redrawPath();
-
-    $box.on("mousewheel", function(e) {
-        if (e.deltaY < 0) {
-            tension -= 0.05;
-        } else {
-            tension += 0.05;
-        }
-        redrawPath();
-    });
-
-    $("path", $box).on("dblclick", function(e) {
-        var coords = toClientCoords(e.pageX, e.pageY);
-        var knotIndices = closestLineSegment(knots, coords.cx, coords.cy);
-        var i = knotIndices[0], j = knotIndices[1];
-        var wraps = (max(i,j) + 1) % knots.length == min(i,j);
-        createKnot(coords.cx, coords.cy, !wraps && max(i, j));
-        redrawPath();
-    });
+$(function() {
+    var $box = $("#blob");
+    var paper = Raphael($box[0], 800, 800);
+    var initialPoints = [[400, 200], [600, 400], [400, 600], [200, 400]];
+    
+    var blob = new Blob(paper);
+    blob.create(initialPoints);
+    
 });
