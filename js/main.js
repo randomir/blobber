@@ -116,6 +116,28 @@ $.extend(Blob.prototype, {
             if (this.isResizing) return;
             this.$.g.toggleClass(this.def.activeClass, this.isActive = false);
         }.bind(this));
+
+        var _beginDragPos;
+        this.$.g.on("mousedown", function(e) {
+            if (this.isResizing) return;
+            this.$.g.toggleClass(this.def.movingClass, this.isMoving = true);
+            _beginDragPos = this.toClientCoords(e.pageX, e.pageY);
+        }.bind(this));
+
+        this.$.svg.on("mousemove", function(e) {
+            if (!this.isMoving) return;
+            var coords = this.toClientCoords(e.pageX, e.pageY);
+            var dx = coords.cx - _beginDragPos.cx, dy = coords.cy - _beginDragPos.cy;
+            var tx = this.$.g.data("translation-x") || 0, ty = this.$.g.data("translation-y") || 0;
+            this.$.g.data("translation-x", tx+=dx);
+            this.$.g.data("translation-y", ty+=dy);
+            this.$.g.attr({transform: "translate("+tx+","+ty+")"});
+            _beginDragPos = coords;
+        }.bind(this));
+        
+        $(window).on("mouseup", function(e) {
+            this.$.g.toggleClass(this.def.movingClass, this.isMoving = false);
+        }.bind(this));
     },
     
     bindKnotEvents: function(knot) {
@@ -126,7 +148,9 @@ $.extend(Blob.prototype, {
         // raphael event handler triggered for knot move;
         knot.drag(function(dx, dy, x, y) {
             // onmove:
-            this.attr(me.toClientCoords(x, y));
+            var coords = me.toClientCoords(x, y);
+            var tx = me.$.g.data("translation-x") || 0, ty = me.$.g.data("translation-y") || 0;
+            this.attr({cx: coords.cx - tx, cy: coords.cy - ty});
             me.redrawPath();
         }, function() {
             // onstart
