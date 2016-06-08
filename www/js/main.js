@@ -48,7 +48,7 @@ $.extend(Blob.prototype, {
     def: {
         knotAttr: {"class": "blob-knot", stroke: "none"},
         knotRadius: 2,
-        pathAttr: {"class": "blob-path", stroke: "none", fill: "rgba(255,0,0,0.8)"},
+        pathAttr: {"class": "blob-path", stroke: "none", fill: "rgba(255,0,0,0.7)"},
         tension: 0.6,
         resizingClass: "resizing",
         activeClass: "active",
@@ -81,6 +81,7 @@ $.extend(Blob.prototype, {
     // bind DOM event handlers
     bind: function() {
         this.$.g.on("mousewheel", function(e) {
+            if (!this.isActive) return;
             if (e.deltaY < 0) {
                 this.tension -= 0.05;
             } else {

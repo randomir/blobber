@@ -33,3 +33,6 @@ g.blob {}
 			stroke-opacity: 0.2;
 			fill: #666;
 		}
+		g.blob.active circle.blob-knot:hover {
+			stroke-opacity: 0.6;
+		}
