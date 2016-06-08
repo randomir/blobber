@@ -43,9 +43,9 @@ var Blob = function(paper) {
 }
 $.extend(Blob.prototype, {
     def: {
-        knotAttr: {"class": "blob-knot"},
+        knotAttr: {"class": "blob-knot", stroke: "none"},
         knotRadius: 2,
-        pathAttr: {"class": "blob-path", fill: "rgba(255,0,0,0.8)", stroke: "#000", "stroke-width": 4},
+        pathAttr: {"class": "blob-path", stroke: "none", fill: "rgba(255,0,0,0.8)"},
         tension: 0.6
     },
     
