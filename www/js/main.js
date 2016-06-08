@@ -26,27 +26,6 @@ function isInsideLineSegment(p1x, p1y, p2x, p2y, x, y) {
     return !!((ang1 - pi2) * (ang2 - pi2) < 0);
 }
 
-function closestLineSegment(knots, x, y) {
-    var n = knots.length;
-    var minDist = 1e10, minLeft = -1, minRight = -1;
-    for (var idxLeft = 0; idxLeft < n; idxLeft++) {
-        var idxRight = (idxLeft + 1) % n;
-        var p1 = knots[idxLeft], p2 = knots[idxRight];
-        var p1x = p1.attr("cx"), p1y = p1.attr("cy");
-        var p2x = p2.attr("cx"), p2y = p2.attr("cy");
-        if (!isInsideLineSegment(p1x, p1y, p2x, p2y, x, y)) {
-            continue;
-        }
-        var d = Math.pow((p2y - p1y) * x - (p2x - p1x) * y + p2x * p1y - p2y * p1x, 2)
-              / (Math.pow(p2y - p1y, 2) + Math.pow(p2x - p1x, 2));
-        if (d < minDist) {
-            minDist = d;
-            minLeft = idxLeft;
-            minRight = idxRight;
-        }
-    }
-    return [minLeft, minRight];
-}
 
 
 // Blob is bound to paper, everything blob is grouped with <g>
@@ -95,7 +74,7 @@ $.extend(Blob.prototype, {
         
         $("path", this.$.box).on("dblclick", function(e) {
             var coords = this.toClientCoords(e.pageX, e.pageY);
-            var knotIndices = closestLineSegment(this.knots, coords.cx, coords.cy);
+            var knotIndices = this.closestLineSegment(coords.cx, coords.cy);
             var i = knotIndices[0], j = knotIndices[1];
             var wraps = (max(i,j) + 1) % this.knots.length == min(i,j);
             this.createKnot(coords.cx, coords.cy, !wraps && max(i, j));
@@ -177,6 +156,28 @@ $.extend(Blob.prototype, {
     toClientCoords: function(x, y) {
         var offset = this.$.box.offset();
         return {cx: x - offset.left, cy: y - offset.top};
+    },
+
+    closestLineSegment: function(x, y) {
+        var n = this.knots.length;
+        var minDist = 1e10, minLeft = -1, minRight = -1;
+        for (var idxLeft = 0; idxLeft < n; idxLeft++) {
+            var idxRight = (idxLeft + 1) % n;
+            var p1 = this.knots[idxLeft], p2 = this.knots[idxRight];
+            var p1x = p1.attr("cx"), p1y = p1.attr("cy");
+            var p2x = p2.attr("cx"), p2y = p2.attr("cy");
+            if (!isInsideLineSegment(p1x, p1y, p2x, p2y, x, y)) {
+                continue;
+            }
+            var d = Math.pow((p2y - p1y) * x - (p2x - p1x) * y + p2x * p1y - p2y * p1x, 2)
+                  / (Math.pow(p2y - p1y, 2) + Math.pow(p2x - p1x, 2));
+            if (d < minDist) {
+                minDist = d;
+                minLeft = idxLeft;
+                minRight = idxRight;
+            }
+        }
+        return [minLeft, minRight];
     },
     
     // natural bezier spline interp between series of points
