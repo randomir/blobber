@@ -13,21 +13,22 @@
 	border: 1px dotted #666;
 }
 
-svg g.blob {
+
+g.blob {
 
 }
 
-svg path.blob-path {
+path.blob-path {
 
 }
 
-svg circle.blob-knot {
+circle.blob-knot {
     stroke-width: 24;
 	stroke-opacity: 0;
 	fill: #000;
 }
 
-svg:hover circle.blob-knot {
+g.blob:hover circle.blob-knot {
 	stroke-opacity: 0.15;
 	fill: #666;
 }

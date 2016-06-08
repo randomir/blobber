@@ -31,14 +31,15 @@ function isInsideLineSegment(p1x, p1y, p2x, p2y, x, y) {
 // Blob is bound to paper, everything blob is grouped with <g>
 var Blob = function(paper) {
     this.paper = paper;
-    this.$ = {
-        svg: $(paper.canvas),
-        box: $(paper.canvas).parent(),
-        g: null
-    };
     this.g = null;
     this.knots = [];
     this.path = null;
+    this.$ = {
+        box: $(paper.canvas).parent(),
+        svg: $(paper.canvas),
+        g: null,
+        path: null,
+    };
 }
 $.extend(Blob.prototype, {
     def: {
@@ -65,13 +66,16 @@ $.extend(Blob.prototype, {
         
         // create curved path, draw it
         this.path = this.paper.path("M 0 0").attr(this.def.pathAttr);
-        $(this.path.node).detach().appendTo(this.$.g);
+        this.$.path = $(this.path.node);
+        this.$.path.detach().appendTo(this.$.g);
         this.redrawPath();
         this.bind();
     },
     
     // bind DOM event handlers
     bind: function() {
+        var me = this;
+
         this.$.box.on("mousewheel", function(e) {
             if (e.deltaY < 0) {
                 this.tension -= 0.05;
@@ -81,7 +85,7 @@ $.extend(Blob.prototype, {
             this.redrawPath();
         }.bind(this));
         
-        $("path", this.$.box).on("dblclick", function(e) {
+        this.$.path.on("dblclick", function(e) {
             var coords = this.toClientCoords(e.pageX, e.pageY);
             var knotIndices = this.closestLineSegment(coords.cx, coords.cy);
             var i = knotIndices[0], j = knotIndices[1];
@@ -89,6 +93,10 @@ $.extend(Blob.prototype, {
             this.createKnot(coords.cx, coords.cy, !wraps && max(i, j));
             this.redrawPath();
         }.bind(this));
+
+        this.$.g.on("mouseenter", function(e) {
+            me.$.svg.append($(this));
+        });
     },
     
     bindKnotEvents: function(knot) {
