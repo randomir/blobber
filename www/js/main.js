@@ -37,20 +37,26 @@ function max(a, b) {
 
 
 $(function() {
-    var canvas = Raphael("blob", 800, 800);
+    var $box = $("#blob");
+    var canvas = Raphael($box[0], 800, 800);
     var initialPoints = [[400, 200], [600, 400], [400, 600], [200, 400]], pointRadius = 2,
         pointAttr = {fill: "#666", stroke: "rgba(0,0,0,0.12)", "stroke-width": 24},
         curveAttr = {fill: "rgba(255,0,0,0.8)", stroke: "#000", "stroke-width": 4},
         knots = [];
     var curve;
     var tension = 1;
+    
+    function toClientCoords(x, y) {
+        var offset = $box.offset();
+        return {cx: x - offset.left, cy: y - offset.top};
+    }
 
     // handle knot move
-    function knotMove(dx, dy, x, y, evt) {
-        this.attr({cx: evt.offsetX, cy: evt.offsetY});
+    function knotMove(dx, dy, x, y) {
+        this.attr(toClientCoords(x, y));
         redrawPath();
     }
-    function knotRemove(dx, dy, x, y, evt) {
+    function knotRemove(dx, dy, x, y) {
         for (var i = 0; i < knots.length; i++) {
             if (knots[i] == this) {
                 this.remove();
@@ -137,7 +143,7 @@ $(function() {
 
     redrawPath();
 
-    $("#blob").on("mousewheel", function(e) {
+    $box.on("mousewheel", function(e) {
         if (e.deltaY < 0) {
             tension -= 0.1;
         } else {
@@ -146,12 +152,12 @@ $(function() {
         redrawPath();
     });
 
-    $("#blob path").on("dblclick", function(e) {
-        var x = e.offsetX, y = e.offsetY;
-        var i = closestKnot(x, y);
-        var j = nextClosestKnot(i, x, y);
+    $("path", $box).on("dblclick", function(e) {
+        var coords = toClientCoords(e.pageX, e.pageY);
+        var i = closestKnot(coords.cx, coords.cy);
+        var j = nextClosestKnot(i, coords.cx, coords.cy);
         var wraps = (max(i,j) + 1) % knots.length == min(i,j);
-        createKnot(x, y, !wraps && max(i, j));
+        createKnot(coords.cx, coords.cy, !wraps && max(i, j));
         redrawPath();
     });
 });
