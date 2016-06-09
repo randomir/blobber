@@ -100,6 +100,8 @@ $.extend(Blob.prototype, {
         
         this.$.path.on("dblclick", function(e) {
             var coords = this.toClientCoords(e.pageX, e.pageY);
+            var tx = this.$.g.data("translation-x") || 0, ty = this.$.g.data("translation-y") || 0;
+            coords = {cx: coords.cx - tx, cy: coords.cy - ty};
             var knotIndices = this.closestLineSegment(coords.cx, coords.cy);
             var i = knotIndices[0], j = knotIndices[1];
             var wraps = (max(i,j) + 1) % this.knots.length == min(i,j);
