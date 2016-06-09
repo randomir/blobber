@@ -70,9 +70,9 @@ $.extend(Blob.prototype, {
     },
     
     create: function(initialPoints, initialTension, initialFill, initialPos) {
-        this.tension = initialTension || this.def.tension;
+        this.tension = $.isNumeric(initialTension) ? initialTension : this.def.tension;
         this.pos = initialPos || $.extend({}, this.def.pos);
-
+        
         // create <g> container for knots and curve
         this.g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         this.$.g = $(this.g);
@@ -108,7 +108,7 @@ $.extend(Blob.prototype, {
         return {
             type: "Blob",
             points: points,
-            tension: Math.round(this.tension),
+            tension: Math.round(this.tension*100)/100,
             fill: this.path.attr("fill"),
             pos: $.extend({}, this.pos)
         };
@@ -352,7 +352,7 @@ $(function() {
     function addRandomBlob() {
         var blob = new Blob(paper);
         var tension = Math.round(Math.random()*10)/10;
-        var color = "rgba(255,0,0," + Math.round(Math.random()*10)/10 + ")";
+        var color = "rgba(255,0,0," + Math.round(Math.random()*9+1)/10 + ")";
         blob.create(initialPoints, tension, color);
     }
 
@@ -360,9 +360,30 @@ $(function() {
         window.open("data:image/svg+xml," + encodeURIComponent($("#blobs").html()));
     }
     
+    function exportToJSON() {
+        var blobs = [];
+        $("#blobs g.blob").each(function() {
+            blobs.push($(this).data("object").dump());
+        });
+        window.open(window.location.origin + "#" + encodeURIComponent(JSON.stringify(blobs)));
+    }
+    
+    function loadFromURIHash(hash) {
+        var blobs = JSON.parse(decodeURIComponent(String(hash).replace(/^#/, "")));
+        if (!$.isArray(blobs)) return;
+        for (var i = 0; i < blobs.length; i++) {
+            var blob = new Blob(paper);
+            blob.load(blobs[i]);
+        }
+    }
+
     $("#add").click(addRandomBlob);
     $("#export-svg").click(exportToSVG);
     $("#export-json").click(exportToJSON);
 
-    addRandomBlob();
+    if (window.location.hash) {
+        loadFromURIHash(window.location.hash);
+    } else {
+        addRandomBlob();
+    }
 });
