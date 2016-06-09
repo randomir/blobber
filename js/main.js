@@ -62,7 +62,7 @@ $.extend(Blob.prototype, {
         movingClass: "moving"
     },
     
-    create: function(initialPoints, initialTension) {
+    create: function(initialPoints, initialTension, initialFill) {
         this.tension = initialTension || this.def.tension;
 
         // create <g> container for knots and curve
@@ -79,6 +79,7 @@ $.extend(Blob.prototype, {
         
         // create curved path, draw it
         this.path = this.paper.path("M 0 0").attr(this.def.pathAttr);
+        if (initialFill) this.path.attr({fill: initialFill});
         this.$.path = $(this.path.node);
         this.$.path.detach().appendTo(this.$.g);
         this.redrawPath();
@@ -137,6 +138,13 @@ $.extend(Blob.prototype, {
         
         $(window).on("mouseup", function(e) {
             this.$.g.toggleClass(this.def.movingClass, this.isMoving = false);
+        }.bind(this));
+        
+        // delete itself
+        $(window).on("keyup", function(e) {
+            if (this.isActive && e.which == 46) {
+                this.$.g.remove();
+            }
         }.bind(this));
     },
     
@@ -263,13 +271,22 @@ $.extend(Blob.prototype, {
 
 });
 
+
 $(function() {
     var paper = Raphael("blobs", 800, 800);
     var initialPoints = [[400, 200], [600, 400], [400, 600], [200, 400]];
-    
-    var blob = new Blob(paper);
-    blob.create(initialPoints, 1);
-    
-    blob = new Blob(paper);
-    blob.create([[700, 600], [600, 700], [400, 400]]);
+
+    function addRandomBlob() {
+        var blob = new Blob(paper);
+        var tension = Math.round(Math.random()*10)/10;
+        var color = "rgba(255,0,0," + Math.round(Math.random()*10)/10 + ")";
+        blob.create(initialPoints, tension, color);
+    }
+
+    function exportToSVG() {
+        window.open("data:image/svg+xml," + encodeURIComponent($("#blobs").html()));
+    }
+
+    $("#add").click(addRandomBlob);
+    $("#export").click(exportToSVG);
 });
