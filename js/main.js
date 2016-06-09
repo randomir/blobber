@@ -109,6 +109,9 @@ $.extend(Blob.prototype, {
             this.redrawPath();
         }.bind(this));
 
+        // prevent text select on dblclick
+        this.$.svg.mousedown(false);
+
         this.$.g.on("mouseenter", function(e) {
             if (e.which > 0) return;
             this.$.svg.append(this.$.g);
@@ -291,4 +294,6 @@ $(function() {
 
     $("#add").click(addRandomBlob);
     $("#export").click(exportToSVG);
+
+    addRandomBlob();
 });
