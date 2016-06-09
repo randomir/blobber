@@ -100,6 +100,33 @@ $.extend(Blob.prototype, {
         this.$.g.attr({transform: "translate(" + this.pos.x + "," + this.pos.y + ")"});
     },
     
+    dump: function() {
+        var points = [];
+        for (var i = 0; i < this.knots.length; i++) {
+            points.push([this.knots[i].attr("cx"), this.knots[i].attr("cy")]);
+        }
+        return {
+            type: "Blob",
+            points: points,
+            tension: Math.round(this.tension),
+            fill: this.path.attr("fill"),
+            pos: $.extend({}, this.pos)
+        };
+    },
+    
+    load: function(data) {
+        if (data.type != "Blob") return;
+        this.create(data.points, data.tension, data.fill, data.pos);
+    },
+    
+    dumps: function() {
+        return JSON.stringify(this.dump());
+    },
+    
+    loads: function(data) {
+        this.load(JSON.parse(data));
+    },
+    
     activate: function() {
         this.$.g.toggleClass(this.def.activeClass, this.isActive = true);
         this.$.svg.append(this.$.g);
@@ -332,9 +359,10 @@ $(function() {
     function exportToSVG() {
         window.open("data:image/svg+xml," + encodeURIComponent($("#blobs").html()));
     }
-
+    
     $("#add").click(addRandomBlob);
-    $("#export").click(exportToSVG);
+    $("#export-svg").click(exportToSVG);
+    $("#export-json").click(exportToJSON);
 
     addRandomBlob();
 });
