@@ -8,23 +8,32 @@
 
 g.blob {}
 
-	path.blob-path {}
+    /* anim */
+    path.blob-path, circle.blob-knot {
+        transition: stroke-opacity 0.1s ease-in-out;
+    }
+    
+    /* blob outline (curved path) */
+	path.blob-path {
+        stroke: #000;
+        stroke-width: 4;
+        stroke-opacity: 0;
+    }
+    .blob.active path.blob-path {
+        stroke-opacity: 0.8;
+    }
 
-		g.blob.active path.blob-path {
-			stroke: #000;
-			stroke-width: 4;
-			stroke-opacity: 0.8;
-		}
-
-
-	circle.blob-knot {}
-
-		g.blob.active circle.blob-knot {
-			stroke: #000;
-		    stroke-width: 24;
-			stroke-opacity: 0.2;
-			fill: #666;
-		}
-		g.blob.active circle.blob-knot:hover {
-			stroke-opacity: 0.6;
-		}
+    /* blob shape controlling fixed knots */
+	circle.blob-knot {
+        stroke: #000;
+        stroke-width: 24;
+        stroke-opacity: 0;
+        fill: none;
+    }
+    .blob.active circle.blob-knot {
+        stroke-opacity: 0.2;
+        fill: #666;
+    }
+    .blob.active circle.blob-knot:hover {
+        stroke-opacity: 0.6;
+    }
