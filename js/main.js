@@ -38,12 +38,13 @@ function isInsideLineSegment(p1x, p1y, p2x, p2y, x, y) {
 // Blob is bound to paper, everything blob is grouped with <g>
 var Blob = function(paper) {
     this.paper = paper;
+    this.svg = paper.canvas
     this.g = null;
     this.knots = [];
     this.path = null;
     this.$ = {
-        box: $(paper.canvas).parent(),
-        svg: $(paper.canvas),
+        box: $(this.svg).parent(),
+        svg: $(this.svg),
         g: null,
         path: null,
     };
@@ -128,13 +129,18 @@ $.extend(Blob.prototype, {
             this.redrawPath();
         }.bind(this));
         
-        this.$.svg.on("mousedown", function() {
+        // deactivate all blobs on canvas click
+        this.$.svg.on("mousedown", function(e) {
+            if (e.eventPhase == Event.AT_TARGET) {
+                // in activate-by-click mode, deactivate the active blob
+                if (!this.def.activateOnHover) this.deactivateAllOthers();
+            }
             // prevent text select on dblclick
             return false;
         }.bind(this));
         
         // activate/deactivate by click
-        this.$.g.on("mousedown", function() {
+        this.$.g.on("mousedown", function(e) {
             if (!this.def.activateOnHover && !this.isActive) {
                 this.deactivateAllOthers();
                 this.activate();
