@@ -108,7 +108,7 @@ $.extend(Blob.prototype, {
     
     // bind DOM event handlers
     bind: function() {
-        this.$.g.on("mousewheel", function(e) {
+        this.$.svg.on("mousewheel", function(e) {
             if (!this.isActive) return;
             if (e.deltaY < 0) {
                 this.tension -= 0.05;
