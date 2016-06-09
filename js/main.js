@@ -42,6 +42,7 @@ var Blob = function(paper) {
     this.g = null;
     this.knots = [];
     this.path = null;
+    this.pos = null;
     this.$ = {
         box: $(this.svg).parent(),
         svg: $(this.svg),
@@ -60,6 +61,7 @@ $.extend(Blob.prototype, {
         knotRadius: 2,
         pathAttr: {"class": "blob-path", stroke: "none", fill: "rgba(255,0,0,0.7)"},
         tension: 0.6,
+        pos: {x: 0, y: 0},
         // internals
         resizingClass: "resizing",
         activeClass: "active",
@@ -67,13 +69,15 @@ $.extend(Blob.prototype, {
         activateOnHover: false // vs. activate with click
     },
     
-    create: function(initialPoints, initialTension, initialFill) {
+    create: function(initialPoints, initialTension, initialFill, initialPos) {
         this.tension = initialTension || this.def.tension;
+        this.pos = initialPos || $.extend({}, this.def.pos);
 
         // create <g> container for knots and curve
         this.g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         this.$.g = $(this.g);
         this.$.g.addClass("blob").data("object", this);
+        this._translate();
         this.$.svg.append(this.$.g);
         
         // create knots
@@ -89,6 +93,11 @@ $.extend(Blob.prototype, {
         this.$.path.detach().appendTo(this.$.g);
         this.redrawPath();
         this.bind();
+    },
+    
+    _translate: function() {
+        // TODO: move to this.pos setter
+        this.$.g.attr({transform: "translate(" + this.pos.x + "," + this.pos.y + ")"});
     },
     
     activate: function() {
@@ -120,8 +129,7 @@ $.extend(Blob.prototype, {
         
         this.$.path.on("dblclick", function(e) {
             var coords = this.toClientCoords(e.pageX, e.pageY);
-            var tx = this.$.g.data("translation-x") || 0, ty = this.$.g.data("translation-y") || 0;
-            coords = {cx: coords.cx - tx, cy: coords.cy - ty};
+            coords = {cx: coords.cx - this.pos.x, cy: coords.cy - this.pos.y};
             var knotIndices = this.closestLineSegment(coords.cx, coords.cy);
             var i = knotIndices[0], j = knotIndices[1];
             var wraps = (max(i,j) + 1) % this.knots.length == min(i,j);
@@ -169,11 +177,9 @@ $.extend(Blob.prototype, {
         this.$.svg.on("mousemove", function(e) {
             if (!this.isMoving) return;
             var coords = this.toClientCoords(e.pageX, e.pageY);
-            var dx = coords.cx - _beginDragPos.cx, dy = coords.cy - _beginDragPos.cy;
-            var tx = this.$.g.data("translation-x") || 0, ty = this.$.g.data("translation-y") || 0;
-            this.$.g.data("translation-x", tx+=dx);
-            this.$.g.data("translation-y", ty+=dy);
-            this.$.g.attr({transform: "translate("+tx+","+ty+")"});
+            this.pos.x += coords.cx - _beginDragPos.cx;
+            this.pos.y += coords.cy - _beginDragPos.cy;
+            this._translate();
             _beginDragPos = coords;
         }.bind(this));
         
@@ -198,8 +204,7 @@ $.extend(Blob.prototype, {
         knot.drag(function(dx, dy, x, y) {
             // onmove:
             var coords = me.toClientCoords(x, y);
-            var tx = me.$.g.data("translation-x") || 0, ty = me.$.g.data("translation-y") || 0;
-            this.attr({cx: coords.cx - tx, cy: coords.cy - ty});
+            this.attr({cx: coords.cx - me.pos.x, cy: coords.cy - me.pos.y});
             me.redrawPath();
         }, function() {
             // onstart
