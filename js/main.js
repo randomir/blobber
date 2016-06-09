@@ -344,16 +344,15 @@ $.extend(Blob.prototype, {
 
 });
 
+var paper;
 
 $(function() {
-    var paper = Raphael("blobs", 800, 800);
-    var initialPoints = [[400, 200], [600, 400], [400, 600], [200, 400]];
-
     function addRandomBlob() {
         var blob = new Blob(paper);
         var tension = Math.round(Math.random()*10)/10;
         var color = "rgba(255,0,0," + Math.round(Math.random()*9+1)/10 + ")";
-        blob.create(initialPoints, tension, color);
+        var initialPoints = [[0, -200], [200, 0], [0, 200], [-200, 0]];
+        blob.create(initialPoints, tension, color, {x: 400, y: 400});
     }
 
     function exportToSVG() {
@@ -376,11 +375,12 @@ $(function() {
             blob.load(blobs[i]);
         }
     }
-
+    
     $("#add").click(addRandomBlob);
     $("#export-svg").click(exportToSVG);
     $("#export-json").click(exportToJSON);
-
+    
+    paper = Raphael("blobs", 800, 800);
     if (window.location.hash) {
         loadFromURIHash(window.location.hash);
     } else {
