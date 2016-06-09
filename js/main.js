@@ -53,13 +53,17 @@ var Blob = function(paper) {
 }
 $.extend(Blob.prototype, {
     def: {
+        // all static styles (visible on export) should be defined here;
+        // the dynamic ones are best defined through css
         knotAttr: {"class": "blob-knot", stroke: "none"},
         knotRadius: 2,
         pathAttr: {"class": "blob-path", stroke: "none", fill: "rgba(255,0,0,0.7)"},
         tension: 0.6,
+        // internals
         resizingClass: "resizing",
         activeClass: "active",
-        movingClass: "moving"
+        movingClass: "moving",
+        activateOnHover: false // vs. activate with click
     },
     
     create: function(initialPoints, initialTension, initialFill) {
@@ -68,7 +72,7 @@ $.extend(Blob.prototype, {
         // create <g> container for knots and curve
         this.g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         this.$.g = $(this.g);
-        this.$.g.addClass("blob");
+        this.$.g.addClass("blob").data("object", this);
         this.$.svg.append(this.$.g);
         
         // create knots
@@ -84,6 +88,21 @@ $.extend(Blob.prototype, {
         this.$.path.detach().appendTo(this.$.g);
         this.redrawPath();
         this.bind();
+    },
+    
+    activate: function() {
+        this.$.g.toggleClass(this.def.activeClass, this.isActive = true);
+        this.$.svg.append(this.$.g);
+    },
+    
+    deactivate: function() {
+        this.$.g.toggleClass(this.def.activeClass, this.isActive = false);
+    },
+    
+    deactivateAllOthers: function() {
+        $("g.blob", this.$.svg).each(function() {
+            $(this).data("object").deactivate();
+        });
     },
     
     // bind DOM event handlers
@@ -108,21 +127,32 @@ $.extend(Blob.prototype, {
             this.createKnot(coords.cx, coords.cy, !wraps && max(i, j));
             this.redrawPath();
         }.bind(this));
+        
+        this.$.svg.on("mousedown", function() {
+            // prevent text select on dblclick
+            return false;
+        }.bind(this));
+        
+        // activate/deactivate by click
+        this.$.g.on("mousedown", function() {
+            if (!this.def.activateOnHover && !this.isActive) {
+                this.deactivateAllOthers();
+                this.activate();
+            }
+        }.bind(this));
 
-        // prevent text select on dblclick
-        this.$.svg.mousedown(false);
-
+        // activate/deactivate by hover
         this.$.g.on("mouseenter", function(e) {
             if (e.which > 0) return;
-            this.$.svg.append(this.$.g);
-            this.$.g.toggleClass(this.def.activeClass, this.isActive = true);
+            if (this.def.activateOnHover) this.activate();
         }.bind(this));
         
         this.$.g.on("mouseleave", function(e) {
             if (this.isResizing) return;
-            this.$.g.toggleClass(this.def.activeClass, this.isActive = false);
+            if (this.def.activateOnHover) this.deactivate();
         }.bind(this));
 
+        // blob move/drag
         var _beginDragPos;
         this.$.g.on("mousedown", function(e) {
             if (this.isResizing) return;
@@ -145,7 +175,7 @@ $.extend(Blob.prototype, {
             this.$.g.toggleClass(this.def.movingClass, this.isMoving = false);
         }.bind(this));
         
-        // delete itself
+        // blob delete
         $(window).on("keyup", function(e) {
             if (this.isActive && e.which == 46) {
                 this.$.g.remove();
