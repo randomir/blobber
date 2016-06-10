@@ -42,6 +42,7 @@ var Blob = function(paper) {
     this.g = null;
     this.knots = [];
     this.path = null;
+    this.tension = null;
     this.pos = null;
     this.$ = {
         box: $(this.svg).parent(),
@@ -99,6 +100,23 @@ $.extend(Blob.prototype, {
     _translate: function() {
         // TODO: move to this.pos setter
         this.$.g.attr({transform: "translate(" + this.pos.x + "," + this.pos.y + ")"});
+    },
+
+    getFill: function() {
+        return this.path.attr("fill");
+    },
+    
+    setFill: function(rgba) {
+        this.path.attr("fill", rgba);
+    },
+
+    getTension: function() {
+        return this.tension;
+    },
+    
+    setTension: function(tension) {
+        this.tension = tension;
+        this.redrawPath();
     },
     
     dump: function() {
