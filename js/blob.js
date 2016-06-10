@@ -5,6 +5,8 @@
  * Source: https://github.com/randomir/blobber/.
  */
 
+
+// first, some math helpers:
 function dist2(x1, y1, x2, y2) {
     return Math.pow(x2-x1, 2) + Math.pow(y2-y1, 2);
 }
@@ -14,14 +16,12 @@ function min(a, b) {
 function max(a, b) {
     return a > b ? a : b;
 }
-
 function angle(ax, ay, bx, by) {
     var cos = (ax*bx + ay*by) / Math.sqrt(ax*ax + ay*ay) / Math.sqrt(bx*bx + by*by);
     if (isNaN(cos)) cos = 0;
     cos = Math.max(-1, Math.min(cos, 1));
     return Math.acos(cos);
 }
-
 function isInsideLineSegment(p1x, p1y, p2x, p2y, x, y) {
     var lx = p2x - p1x, ly = p2y - p1y;
     var ax = p1x - x, ay = p1y - y;
@@ -34,8 +34,8 @@ function isInsideLineSegment(p1x, p1y, p2x, p2y, x, y) {
 }
 
 
-
 // Blob is bound to paper, everything blob is grouped with <g>
+// (inside the paper/<svg>)
 var Blob = function(paper) {
     this.paper = paper;
     this.svg = paper.canvas
@@ -342,48 +342,4 @@ $.extend(Blob.prototype, {
         return [p1x, p1y, p2x, p2y];
     }
 
-});
-
-var paper;
-
-$(function() {
-    function addRandomBlob() {
-        var blob = new Blob(paper);
-        var tension = Math.round(Math.random()*10)/10;
-        var color = "rgba(255,0,0," + Math.round(Math.random()*9+1)/10 + ")";
-        var initialPoints = [[0, -200], [200, 0], [0, 200], [-200, 0]];
-        blob.create(initialPoints, tension, color, {x: 400, y: 400});
-    }
-
-    function exportToSVG() {
-        window.open("data:image/svg+xml," + encodeURIComponent($("#blobs").html()));
-    }
-    
-    function exportToJSON() {
-        var blobs = [];
-        $("#blobs g.blob").each(function() {
-            blobs.push($(this).data("object").dump());
-        });
-        window.open(window.location.origin + "#" + encodeURIComponent(JSON.stringify(blobs)));
-    }
-    
-    function loadFromURIHash(hash) {
-        var blobs = JSON.parse(decodeURIComponent(String(hash).replace(/^#/, "")));
-        if (!$.isArray(blobs)) return;
-        for (var i = 0; i < blobs.length; i++) {
-            var blob = new Blob(paper);
-            blob.load(blobs[i]);
-        }
-    }
-    
-    $("#add").click(addRandomBlob);
-    $("#export-svg").click(exportToSVG);
-    $("#export-json").click(exportToJSON);
-    
-    paper = Raphael("blobs", 800, 800);
-    if (window.location.hash) {
-        loadFromURIHash(window.location.hash);
-    } else {
-        addRandomBlob();
-    }
 });
