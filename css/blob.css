@@ -10,6 +10,7 @@ g.blob {}
         stroke: #000;
         stroke-width: 4;
         stroke-opacity: 0;
+        cursor: pointer;
     }
     .blob.active path.blob-path {
         stroke-opacity: 0.8;
@@ -21,6 +22,7 @@ g.blob {}
         stroke-width: 24;
         stroke-opacity: 0;
         fill: none;
+        cursor: pointer;
     }
     .blob.active circle.blob-knot {
         stroke-opacity: 0.2;
