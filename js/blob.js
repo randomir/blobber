@@ -77,7 +77,7 @@ $.extend(Blob.prototype, {
         // create <g> container for knots and curve
         this.g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         this.$.g = $(this.g);
-        this.$.g.addClass(this.def.blobClass).data("object", this);
+        this.$.g.addClass(this.def.blobClass).data("blob-ref", this);
         this._translate();
         this.$.svg.append(this.$.g);
         
@@ -139,7 +139,7 @@ $.extend(Blob.prototype, {
     
     deactivateAllOthers: function() {
         $("g.blob", this.$.svg).each(function() {
-            $(this).data("object").deactivate();
+            $(this).data("blob-ref").deactivate();
         });
     },
     

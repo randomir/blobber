@@ -16,7 +16,7 @@ $(function() {
     function exportToJSON() {
         var blobs = [];
         $("#blobs g.blob").each(function() {
-            blobs.push($(this).data("object").dump());
+            blobs.push($(this).data("blob-ref").dump());
         });
         window.open(window.location.origin + "#" + encodeURIComponent(JSON.stringify(blobs)));
     }
