@@ -57,6 +57,7 @@ $.extend(Blob.prototype, {
     def: {
         // all static styles (visible on export) should be defined here;
         // the dynamic ones are best defined through css
+        blobClass: "blob",
         knotAttr: {"class": "blob-knot", stroke: "none"},
         knotRadius: 2,
         pathAttr: {"class": "blob-path", stroke: "none", fill: "rgba(255,0,0,0.7)"},
@@ -76,7 +77,7 @@ $.extend(Blob.prototype, {
         // create <g> container for knots and curve
         this.g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         this.$.g = $(this.g);
-        this.$.g.addClass("blob").data("object", this);
+        this.$.g.addClass(this.def.blobClass).data("object", this);
         this._translate();
         this.$.svg.append(this.$.g);
         
