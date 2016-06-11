@@ -152,6 +152,12 @@ $.extend(Blob.prototype, {
         this.$.g.toggleClass(this.def.activeClass, this.isActive = true).trigger("activate");
         this.$.svg.append(this.$.g);
     },
+
+    activateExclusive: function() {
+        if (this.isActive) return;
+        this.deactivateAllOthers();
+        this.activate();
+    },
     
     deactivate: function() {
         if (!this.isActive) return;
@@ -198,9 +204,8 @@ $.extend(Blob.prototype, {
         
         // activate/deactivate by click
         this.$.g.on("mousedown", function(e) {
-            if (!this.def.activateOnHover && !this.isActive) {
-                this.deactivateAllOthers();
-                this.activate();
+            if (!this.def.activateOnHover) {
+                this.activateExclusive();
             }
         }.bind(this));
 
