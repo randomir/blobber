@@ -147,12 +147,14 @@ $.extend(Blob.prototype, {
     },
     
     activate: function() {
-        this.$.g.toggleClass(this.def.activeClass, this.isActive = true);
+        if (this.isActive) return;
+        this.$.g.toggleClass(this.def.activeClass, this.isActive = true).trigger("activate");
         this.$.svg.append(this.$.g);
     },
     
     deactivate: function() {
-        this.$.g.toggleClass(this.def.activeClass, this.isActive = false);
+        if (!this.isActive) return;
+        this.$.g.toggleClass(this.def.activeClass, this.isActive = false).trigger("deactivate");
     },
     
     deactivateAllOthers: function() {
