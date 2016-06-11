@@ -188,6 +188,7 @@ $.extend(Blob.prototype, {
             }
             this.tension = clamp(this.tension, this.def.tensionLimit.min, this.def.tensionLimit.max);
             this.redrawPath();
+            return false;
         }.bind(this));
         
         this.$.path.on("dblclick", function(e) {
