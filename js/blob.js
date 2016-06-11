@@ -16,6 +16,9 @@ function min(a, b) {
 function max(a, b) {
     return a > b ? a : b;
 }
+function clamp(x, m, M) {
+    return min(max(x, m), M);
+}
 function angle(ax, ay, bx, by) {
     var cos = (ax*bx + ay*by) / Math.sqrt(ax*ax + ay*ay) / Math.sqrt(bx*bx + by*by);
     if (isNaN(cos)) cos = 0;
@@ -63,6 +66,7 @@ $.extend(Blob.prototype, {
         knotRadius: 2,
         pathAttr: {"class": "blob-path", stroke: "none", fill: "rgba(255,0,0,0.7)"},
         tension: 0.6,
+        tensionLimit: {min: 0, max: 1.2},
         pos: {x: 0, y: 0},
         // internals
         resizingClass: "resizing",
@@ -73,7 +77,10 @@ $.extend(Blob.prototype, {
     },
     
     create: function(initialPoints, initialTension, initialFill, initialPos) {
-        this.tension = $.isNumeric(initialTension) ? initialTension : this.def.tension;
+        this.tension = clamp(
+            $.isNumeric(initialTension) ? initialTension : this.def.tension,
+            this.def.tensionLimit.min, this.def.tensionLimit.max
+        );
         this.pos = initialPos || $.extend({}, this.def.pos);
         
         // create <g> container for knots and curve
@@ -116,7 +123,7 @@ $.extend(Blob.prototype, {
     },
     
     setTension: function(tension) {
-        this.tension = tension;
+        this.tension = clamp(tension, this.def.tensionLimit.min, this.def.tensionLimit.max);
         this.redrawPath();
     },
     
@@ -179,6 +186,7 @@ $.extend(Blob.prototype, {
             } else {
                 this.tension += 0.05;
             }
+            this.tension = clamp(this.tension, this.def.tensionLimit.min, this.def.tensionLimit.max);
             this.redrawPath();
         }.bind(this));
         
