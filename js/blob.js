@@ -111,7 +111,7 @@ $.extend(Blob.prototype, {
     },
 
     getTension: function() {
-        return this.tension;
+        return Math.round(this.tension*100)/100;
     },
     
     setTension: function(tension) {
