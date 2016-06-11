@@ -68,7 +68,8 @@ $.extend(Blob.prototype, {
         resizingClass: "resizing",
         activeClass: "active",
         movingClass: "moving",
-        activateOnHover: false // vs. activate with click
+        activateOnHover: false, // vs. activate with click
+        deleteShortcut: false
     },
     
     create: function(initialPoints, initialTension, initialFill, initialPos) {
@@ -231,13 +232,13 @@ $.extend(Blob.prototype, {
             _beginDragPos = coords;
         }.bind(this));
         
-        $(window).on("mouseup", function(e) {
+        $(document).on("mouseup", function(e) {
             this.$.g.toggleClass(this.def.movingClass, this.isMoving = false);
         }.bind(this));
         
         // blob delete
-        $(window).on("keyup", function(e) {
-            if (this.isActive && e.which == 46) {
+        $(document).on("keyup", function(e) {
+            if (this.def.deleteShortcut && this.isActive && e.which == 46) {
                 this.$.g.remove();
             }
         }.bind(this));
