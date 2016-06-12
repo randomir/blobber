@@ -207,8 +207,6 @@ $.extend(Blob.prototype, {
                 // in activate-by-click mode, deactivate the active blob
                 if (!this.def.activateOnHover) this.deactivateAllOthers();
             }
-            // prevent text select on dblclick
-            return false;
         }.bind(this));
         
         // activate/deactivate by click

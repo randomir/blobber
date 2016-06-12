@@ -1,3 +1,12 @@
+/* a fix to prevent page text select on blob double-click (when editing outline)  */
+svg {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
 g.blob {}
 
     /* anim */
