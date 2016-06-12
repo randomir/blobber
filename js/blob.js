@@ -204,6 +204,7 @@ $.extend(Blob.prototype, {
             }
             this.tension = clamp(this.tension, this.def.tensionLimit.min, this.def.tensionLimit.max);
             this.redrawPath();
+            this.$.g.trigger("tensionchange");
             return false;
         }.bind(this));
         
