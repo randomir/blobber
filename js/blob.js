@@ -98,7 +98,7 @@ $.extend(Blob.prototype, {
         
         // create curved path, draw it
         this.path = this.paper.path("M 0 0").attr(this.def.pathAttr);
-        if (initialFill) this.path.attr({fill: initialFill});
+        if (initialFill) this.setFill(initialFill);
         this.$.path = $(this.path.node);
         this.$.path.detach().appendTo(this.$.g);
         this.redrawPath();
@@ -110,12 +110,28 @@ $.extend(Blob.prototype, {
         this.$.g.attr({transform: "translate(" + this.pos.x + "," + this.pos.y + ")"});
     },
 
+    // parse "rgb(r,g,b)" or "rgba(r,g,b,a)" color string
+    parseRgba: function(rgba) {
+        var rgba = rgba.replace(/ /g,""), m;
+        if (m = /rgba\((\d+),(\d+),(\d+),(\d+(\.\d+)?)\)/.exec(rgba)) {
+            return {r: m[1], g: m[2], b: m[3], a: m[4]};
+        }
+        if (m = /rgb\((\d+),(\d+),(\d+)\)/.exec(rgba)) {
+            return {r: m[1], g: m[2], b: m[3], a: 1};
+        }
+    },
+    
     getFill: function() {
-        return this.path.attr("fill");
+        var color = this.parseRgba(this.path.attr("fill")),
+            alpha = this.path.attr("fill-opacity");
+        var ret = "rgba(" + color.r + "," + color.g + "," + color.b + "," + alpha + ")";
+        return ret;
     },
     
     setFill: function(rgba) {
-        this.path.attr("fill", rgba);
+        var color = this.parseRgba(rgba);
+        this.path.attr("fill", "rgb(" + color.r + "," + color.g + "," + color.b + ")");
+        this.path.attr("fill-opacity", color.a);
     },
 
     getTension: function() {
@@ -136,7 +152,7 @@ $.extend(Blob.prototype, {
             type: "Blob",
             points: points,
             tension: Math.round(this.tension*100)/100,
-            fill: this.path.attr("fill"),
+            fill: this.getFill(),
             pos: $.extend({}, this.pos)
         };
     },
@@ -200,7 +216,7 @@ $.extend(Blob.prototype, {
             this.createKnot(coords.cx, coords.cy, !wraps && max(i, j));
             this.redrawPath();
         }.bind(this));
-        
+
         // deactivate all blobs on canvas click
         this.$.svg.on("mousedown", function(e) {
             if (e.eventPhase == Event.AT_TARGET) {
@@ -208,7 +224,7 @@ $.extend(Blob.prototype, {
                 if (!this.def.activateOnHover) this.deactivateAllOthers();
             }
         }.bind(this));
-        
+
         // activate/deactivate by click
         this.$.g.on("mousedown", function(e) {
             if (!this.def.activateOnHover) {
