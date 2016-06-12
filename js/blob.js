@@ -78,7 +78,7 @@ $.extend(Blob.prototype, {
     
     create: function(initialPoints, initialTension, initialFill, initialPos) {
         this.tension = clamp(
-            $.isNumeric(initialTension) ? initialTension : this.def.tension,
+            $.isNumeric(initialTension) ? parseFloat(initialTension) : this.def.tension,
             this.def.tensionLimit.min, this.def.tensionLimit.max
         );
         this.pos = initialPos || $.extend({}, this.def.pos);
@@ -139,7 +139,7 @@ $.extend(Blob.prototype, {
     },
     
     setTension: function(tension) {
-        this.tension = clamp(tension, this.def.tensionLimit.min, this.def.tensionLimit.max);
+        this.tension = clamp(parseFloat(tension), this.def.tensionLimit.min, this.def.tensionLimit.max);
         this.redrawPath();
     },
     
