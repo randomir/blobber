@@ -143,17 +143,30 @@ $.extend(Blob.prototype, {
         this.redrawPath();
     },
     
-    dump: function() {
+    getPoints: function() {
         var points = [];
         for (var i = 0; i < this.knots.length; i++) {
             points.push([this.knots[i].attr("cx"), this.knots[i].attr("cy")]);
         }
+        return points;
+    },
+    
+    getPos: function() {
+        return $.extend({}, this.pos);
+    },
+    
+    setPos: function(pos) {
+        this.pos = $.extend({}, pos);
+        this._translate();
+    },
+    
+    dump: function() {
         return {
             type: "Blob",
-            points: points,
-            tension: Math.round(this.tension*100)/100,
+            points: this.getPoints(),
+            tension: this.getTension(),
             fill: this.getFill(),
-            pos: $.extend({}, this.pos)
+            pos: this.getPos()
         };
     },
     
