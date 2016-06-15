@@ -191,7 +191,7 @@ $.extend(Blob.prototype, {
 
     activateExclusive: function() {
         if (this.isActive) return;
-        this.deactivateAllOthers();
+        this.deactivateAllBlobs();
         this.activate();
     },
     
@@ -200,7 +200,7 @@ $.extend(Blob.prototype, {
         this.$.g.toggleClass(this.def.activeClass, this.isActive = false).trigger("deactivate");
     },
     
-    deactivateAllOthers: function() {
+    deactivateAllBlobs: function() {
         $("g.blob", this.$.svg).each(function() {
             $(this).data("blob-ref").deactivate();
         });
@@ -235,7 +235,7 @@ $.extend(Blob.prototype, {
         this.$.svg.on("mousedown", function(e) {
             if (e.eventPhase == Event.AT_TARGET) {
                 // in activate-by-click mode, deactivate the active blob
-                if (!this.def.activateOnHover) this.deactivateAllOthers();
+                if (!this.def.activateOnHover) this.deactivateAllBlobs();
             }
         }.bind(this));
 
